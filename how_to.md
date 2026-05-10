@@ -111,7 +111,7 @@ JavaScript renders the answer and citations in the UI (static/app.js:107)
 ### Core Application
 | File | Purpose |
 |------|---------|
-| **app.py** | Flask server; main entry point. Routes requests to either RAG or CrewAI. Exports port 5000. |
+| **app.py** | Flask server; main entry point. The browser uses the CrewAI route, while `/api/chat` remains as a backend fallback. |
 | **crew.py** | CrewAI orchestration. Defines three agents, tasks, and the `copenhagen_rag_search` tool. |
 | **rag_helpers.py** | Core RAG logic: document loading, embedding, ChromaDB retrieval, LLM chat. Environment-backed config. |
 
@@ -119,7 +119,7 @@ JavaScript renders the answer and citations in the UI (static/app.js:107)
 | File | Purpose |
 |------|---------|
 | **templates/index.html** | Web UI layout. Chat form, message display, citations panel. |
-| **static/app.js** | Frontend logic. Sends questions to `/api/chat/crew`, renders responses. |
+| **static/app.js** | Frontend logic. Sends questions to `/api/chat/crew`, renders CrewAI responses. |
 | **static/style.css** | Styling for the chat interface. |
 
 ### Data Pipeline
@@ -171,19 +171,14 @@ python app.py
 
 ---
 
-## Routing Logic
-
-The backend has two main routes:
-
-### `/api/chat` (POST)
-- Accepts both `message` and `question` fields in JSON
-- Checks if the question contains planning keywords (plan, itinerary, trip, etc.)
-- **If planning keywords found:** routes to `run_crew()`
-- **Otherwise:** routes directly to `answer_question()` (faster RAG without agents)
-
 ### `/api/chat/crew` (POST)
 - Always uses CrewAI multi-agent orchestration
-- Currently used by the web frontend
+- Used by the web frontend
+
+### `/api/chat` (POST)
+- Still available as a backend fallback
+- Uses keyword detection to choose between CrewAI and direct RAG
+- Not used by the current browser UI
 
 ---
 
