@@ -1,0 +1,83 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# -----------------------------
+# VS Code / IDE
+# -----------------------------
+.vscode/
+.idea/
+
+# -----------------------------
+# OS files
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Environment variables / secrets
+# -----------------------------
+.env
+
+# -----------------------------
+# ChromaDB vector database
+# IMPORTANT:
+# This can become huge and should be rebuilt with ingest.py
+# -----------------------------
+chroma_db/
+
+# -----------------------------
+# Ollama temp/cache logs
+# -----------------------------
+*.log
+
+# -----------------------------
+# Temporary files
+# -----------------------------
+tmp/
+temp/
+
+# -----------------------------
+# Jupyter
+# -----------------------------
+.ipynb_checkpoints/
+
+# -----------------------------
+# Testing / coverage
+# -----------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+
+# -----------------------------
+# CrewAI runtime files
+# -----------------------------
+.crewai/
+
+# -----------------------------
+# Optional lock files
+# Keep if your team wants exact dependency versions
+# -----------------------------
+# requirements-lock.txt
+
+# -----------------------------
+# Optional uploaded PDFs/docs
+# Uncomment ONLY if docs are huge or copyrighted
+# -----------------------------
+# docs/*.pdf

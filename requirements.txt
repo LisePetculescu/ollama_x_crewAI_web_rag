@@ -1,0 +1,11 @@
+﻿chromadb
+flask
+pypdf
+requests
+ollama
+langchain
+langchain-community
+crewai
+crewai-tools
+sentence-transformers
+markdown
