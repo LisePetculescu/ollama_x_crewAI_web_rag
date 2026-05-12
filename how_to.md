@@ -22,11 +22,13 @@ uv venv
 
 
 #### Activate the virtual environment 
+***Windows powershell***
 ```bash
 .venv\Scripts\activate
 ```
 
 #### Install requirements
+***Windows powershell***
 ```bash
 uv pip install -r requirements.txt
 ```
@@ -35,6 +37,10 @@ uv pip install -r requirements.txt
 
 Before starting the app, build the RAG knowledge base from the docs:
 
+(OBS. if you've runthe project earlier, yu might want to delete the chroma_db/ dir, before running ingest.py)
+**(OBS. make sure Ollama is running)**
+
+***Windows powershell***
 ```bash
 python ingest.py
 ```
@@ -53,6 +59,7 @@ Stored 57 chunks in Chroma
 
 ### 3. Start the Flask Web Server
 
+***Windows powershell***
 ```bash
 python app.py
 ```
