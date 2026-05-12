@@ -9,11 +9,15 @@ import chromadb
 import requests
 from pypdf import PdfReader
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
-CHAT_MODEL = os.getenv("CHAT_MODEL", "llama3.1:8b")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "embeddinggemma")
-CHROMA_DIR = os.getenv("CHROMA_DIR", "chroma_db")
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "week8_rag_docs")
+from config import (
+    CHAT_MODEL,
+    CHROMA_DIR,
+    COLLECTION_NAME,
+    EMBEDDING_MODEL,
+    OLLAMA_HOST,
+    TEMPERATURE,
+    TOP_K,
+)
 
 
 def get_client() -> chromadb.ClientAPI:

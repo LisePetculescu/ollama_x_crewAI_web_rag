@@ -3,24 +3,31 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Local RAG Chat</title>
+    <title>Copenhagen Travel Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
-  <body>
+  <body class="nordic-theme">
     <main class="page">
       <header class="hero">
-        <h1>Local RAG Chat</h1>
-        <p>Ask questions against the indexed documents and inspect the retrieved chunks behind each answer.</p>
+        <h1>Copenhagen Travel Assistant</h1>
+        <p>Ask about attractions, neighbourhoods, transport, food, events, and sustainable ways to explore Copenhagen.</p>
       </header>
+
+      <section class="suggestions-grid">
+        <button class="suggestion-card" data-query="Plan a 1-day itinerary for Copenhagen">📅 Plan a 1-day itinerary</button>
+        <button class="suggestion-card" data-query="Which neighbourhoods should I visit in Copenhagen?">🏘️ Find neighbourhoods</button>
+        <button class="suggestion-card" data-query="Where can I find the best food and cafés in Copenhagen?">☕ Explore food and cafés</button>
+        <button class="suggestion-card" data-query="How do I get from the airport to the city center in Copenhagen?">✈️ Transport from the airport</button>
+      </section>
 
       <section class="panel chat-panel">
         <div id="messages" class="messages" aria-live="polite"></div>
 
         <form id="chat-form" class="chat-form">
-          <label class="input-label" for="question">Question</label>
+          <label class="input-label" for="question">Your Question</label>
           <div class="input-row">
-            <textarea id="question" name="question" rows="3" placeholder="Ask something from the indexed documents..." required></textarea>
-            <button id="send-button" type="submit">Send</button>
+            <textarea id="question" name="question" rows="3" placeholder="Ask for a 1-day itinerary, where to stay, how to get from the airport, or what to eat in Copenhagen..." required></textarea>
+            <button id="send-button" type="submit">Ask guide</button>
           </div>
         </form>
 

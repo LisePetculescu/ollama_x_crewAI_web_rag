@@ -27,12 +27,14 @@ function addMessage(role, content, citations = [], isError = false) {
 
   if (Array.isArray(citations) && citations.length > 0) {
     const title = document.createElement('h3');
-    title.textContent = 'Retrieved chunks';
+    title.textContent = 'Sources from the tourism guide';
     citationsEl.appendChild(title);
 
     const list = document.createElement('ol');
     for (const citation of citations) {
       const item = document.createElement('li');
+      item.className = 'citation-item';
+
       const meta = document.createElement('div');
       const excerpt = document.createElement('p');
 
@@ -84,18 +86,13 @@ async function sendQuestion(question) {
   return response.json();
 }
 
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  const question = questionInput.value.trim();
-  if (!question) {
-    return;
-  }
+async function handleQuestionSubmit(question) {
+  if (!question) return;
 
   addMessage('User', question);
   questionInput.value = '';
   sendButton.disabled = true;
-  sendButton.textContent = 'Sending...';
+  sendButton.textContent = 'Consulting guide...';
 
   try {
     const data = await sendQuestion(question);
@@ -105,7 +102,20 @@ form.addEventListener('submit', async (event) => {
     addMessage('Assistant', error.message || 'Something went wrong.', [], true);
   } finally {
     sendButton.disabled = false;
-    sendButton.textContent = 'Send';
+    sendButton.textContent = 'Ask guide';
     questionInput.focus();
   }
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const question = questionInput.value.trim();
+  handleQuestionSubmit(question);
+});
+
+document.querySelectorAll('.suggestion-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const query = card.getAttribute('data-query');
+    handleQuestionSubmit(query);
+  });
 });
