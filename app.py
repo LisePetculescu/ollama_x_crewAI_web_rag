@@ -96,10 +96,11 @@ def chat():
         return jsonify({"answer": "Please write a question.", "citations": []})
 
     if should_use_crew(user_message):
+        answer, citations = run_crew(user_message)
         response = {
-            "answer": run_crew(user_message),
+            "answer": answer,
             "mode": "crew",
-            "citations": [],
+            "citations": citations,
         }
     else:
         response = answer_question(user_message, top_k=TOP_K)
@@ -109,7 +110,7 @@ def chat():
 
 
 @app.post("/api/chat/crew")
-def api_chat_crew() -> Any:  # <-- fixed: was also called api_chat
+def api_chat_crew() -> Any:
     payload = request.get_json(silent=True) or {}
     question = get_question_from_payload(payload)
     model = str(payload.get("model", "")).strip() or CHAT_MODEL
@@ -117,8 +118,8 @@ def api_chat_crew() -> Any:  # <-- fixed: was also called api_chat
     if not question:
         return jsonify({"error": "Missing question or user message."}), 400
 
-    answer = run_crew(question)
-    result = {"answer": answer, "citations": [], "grounded": True, "no_answer": False}
+    answer, citations = run_crew(question)
+    result = {"answer": answer, "citations": citations, "grounded": True, "no_answer": False}
 
     return jsonify(
         {

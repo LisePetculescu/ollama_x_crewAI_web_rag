@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from crewai import Agent, Crew, LLM, Process, Task
 from crewai.tools import tool
@@ -9,6 +9,9 @@ from rag_helpers import CHAT_MODEL, OLLAMA_HOST, answer_question
 
 TOP_K = int(os.getenv("TOP_K", "4"))
 MAX_ITER = int(os.getenv("MAX_ITER", "3"))
+
+# Store citations across tool calls within a crew execution
+_crew_citations: List[Dict[str, Any]] = []
 
 
 llm = LLM(
@@ -29,6 +32,10 @@ def copenhagen_rag_search(query: str) -> str:
     answer = result.get("answer", "")
     citations = result.get("citations", [])
 
+    # Collect citations for later retrieval by the endpoint
+    global _crew_citations
+    _crew_citations.extend(citations)
+
     citation_text = ""
     if citations:
         citation_text = "\n\nRetrieved sources:\n"
@@ -41,7 +48,10 @@ def copenhagen_rag_search(query: str) -> str:
     return answer + citation_text
 
 
-def run_crew(question: str) -> str:
+def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
+    global _crew_citations
+    _crew_citations = []  # Reset citations for this crew run
+
     local_expert = Agent(
         role="Copenhagen Local Expert",
         goal=(
@@ -61,11 +71,13 @@ def run_crew(question: str) -> str:
 
     trip_planner = Agent(
         role="Copenhagen Trip Planner",
-        goal="Create useful, realistic Copenhagen travel plans for tourists.",
+        goal="Create useful, realistic Copenhagen travel plans for tourists or just give facts if the user do not ask for an itenerary or planned trip",
         backstory=(
             "You are an experienced travel planner who creates practical, "
-            "well-paced itineraries for visitors to Copenhagen."
+            "well-paced itineraries for visitors to Copenhagen or just facts about copehagen, if the user do not ask for an itenerary."
+            "you use the Copenhagen RAG Search tool."
         ),
+        tools=[copenhagen_rag_search],
         llm=llm,
         max_iter=MAX_ITER,
         verbose=True,
@@ -75,9 +87,14 @@ def run_crew(question: str) -> str:
         role="Tourist Experience Reviewer",
         goal="Polish the final response so it works well as a chat answer.",
         backstory=(
+            "You're Maja, a 40 year old woman, born and raised in vesterbro copenhagen."
             "You review travel advice to make sure it is clear, friendly, "
             "realistic, and easy for tourists to follow."
+            "you use the Copenhagen RAG Search tool."
+            "Your target is people from all over the world, who's interested in visiting,"
+            "or learning more about copenhagen."
         ),
+        tools=[copenhagen_rag_search],
         llm=llm,
         max_iter=MAX_ITER,
         verbose=True,
@@ -141,4 +158,5 @@ def run_crew(question: str) -> str:
     )
 
     result = crew.kickoff()
-    return str(result)
+    citations_copy = _crew_citations.copy()
+    return str(result), citations_copy
