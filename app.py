@@ -61,32 +61,6 @@ def get_question_from_payload(payload: Dict[str, Any]) -> Optional[str]:
     return question or None
 
 
-# @app.post("/api/chat")
-# def api_chat() -> Any:
-#     payload = request.get_json(silent=True) or {}
-#     messages = payload.get("messages") or []
-#     question = str(payload.get("question", "")).strip() or get_last_user_message(messages)
-#     model = str(payload.get("model", "")).strip() or CHAT_MODEL
-
-#     if not question:
-#         return jsonify({"error": "Missing question or user message."}), 400
-
-#     result = answer_question(question, top_k=TOP_K, model=model)
-
-#     return jsonify(
-#         {
-#             "model": model,
-#             "message": {
-#                 "role": "assistant",
-#                 "content": result["answer"],
-#             },
-#             "done": True,
-#             "citations": result["citations"],
-#             "grounded": result["grounded"],
-#             "no_answer": result["no_answer"],
-#         }
-#     )
-
 @app.route("/api/chat", methods=["POST"])
 def chat():
     payload = request.get_json(silent=True) or {}
@@ -107,6 +81,33 @@ def chat():
         response["mode"] = "rag"
 
     return jsonify(response)
+
+
+@app.post("/api/chat/rag")
+def api_chat_rag() -> Any:
+    payload = request.get_json(silent=True) or {}
+    question = get_question_from_payload(payload)
+    model = str(payload.get("model", "")).strip() or CHAT_MODEL
+
+    if not question:
+        return jsonify({"error": "Missing question or user message."}), 400
+
+    result = answer_question(question, top_k=TOP_K, model=model)
+    
+    return jsonify(
+        {
+            "model": model,
+            "message": {
+                "role": "assistant",
+                "content": result["answer"],
+            },
+            "done": True,
+            "citations": result["citations"],
+            "grounded": result["grounded"],
+            "no_answer": result["no_answer"],
+            "mode": "rag"
+        }
+    )
 
 
 @app.post("/api/chat/crew")
@@ -132,10 +133,9 @@ def api_chat_crew() -> Any:
             "citations": result["citations"],
             "grounded": result["grounded"],
             "no_answer": result["no_answer"],
+            "mode": "crew"
         }
     )
-
-
 
 
 if __name__ == "__main__":
