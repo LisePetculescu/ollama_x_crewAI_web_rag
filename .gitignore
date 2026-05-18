@@ -81,3 +81,8 @@ htmlcov/
 # Uncomment ONLY if docs are huge or copyrighted
 # -----------------------------
 # docs/*.pdf
+
+# -----------------------------
+# Other
+# -----------------------------
+exam_project_requirements_llm_for_developers.md

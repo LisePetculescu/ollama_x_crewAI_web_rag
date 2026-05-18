@@ -1,5 +1,22 @@
 # How to Run the Copenhagen RAG Chat Project
 
+## Prerequisites
+
+- A computer __preferably__ with dedicated Graphics card and at least 6 GB of VRAM
+- A code editor such as VS Code
+- NodeJS installed
+- Python installed
+- UV installed (mainly for windows)
+- Ollama installed
+  - Some local models downloaded from ollama such as:
+    - llama3.1:8b (6GB VRAM recommended)
+    - qwen3:4b (can be used with VRAM <6 GB)
+  - Cloud models can also be used:
+    - gemma4:31b-cloud (comes with a certain amount of free token. Ollama account needed)
+  - Embedding model downloaded:
+    - embeddinggemma
+- 
+
 ## Project setup
 
 ### 1. Set Up the Environment
@@ -22,6 +39,8 @@ uv venv
 
 
 #### Activate the virtual environment 
+
+*in Windows Powershell*
 ```bash
 .venv\Scripts\activate
 ```
@@ -34,6 +53,9 @@ uv pip install -r requirements.txt
 ### 2. Ingest Documents into Chroma
 
 Before starting the app, build the RAG knowledge base from the docs:
+
+* **OBS. make sure Ollama is running**
+* If you've run the project earlier, and you've since changed the files in __docs/__ you might want to delete the **chroma_db/** dir, before running ingest.py
 
 ```bash
 python ingest.py
@@ -143,7 +165,7 @@ All settings can be overridden via environment variables:
 
 ```bash
 # LLM & Embedding Model
-export CHAT_MODEL=llama3.1:8b          # Default: llama3.1:8b
+export CHAT_MODEL=llama3.1:8b          # Default: llama3.1:8b - Another option: qwen3:4b
 export EMBEDDING_MODEL=embeddinggemma  # Default: embeddinggemma
 export OLLAMA_HOST=http://localhost:11434
 
