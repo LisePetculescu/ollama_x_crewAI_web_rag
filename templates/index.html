@@ -24,6 +24,22 @@
         <div id="messages" class="messages" aria-live="polite"></div>
 
         <form id="chat-form" class="chat-form">
+          <div class="mode-selector-container">
+            <label class="input-label">Choose your guide mode:</label>
+            <div class="mode-options">
+              <label class="mode-option">
+                <input type="radio" name="chat-mode" value="rag" checked>
+                <span class="mode-label">Quick answer</span>
+                <span class="mode-desc">Best for simple questions.</span>
+              </label>
+              <label class="mode-option">
+                <input type="radio" name="chat-mode" value="crew">
+                <span class="mode-label">Travel planner</span>
+                <span class="mode-desc">Best for itineraries and planning.</span>
+              </label>
+            </div>
+          </div>
+
           <label class="input-label" for="question">Your Question</label>
           <div class="input-row">
             <textarea id="question" name="question" rows="3" placeholder="Ask for a 1-day itinerary, where to stay, how to get from the airport, or what to eat in Copenhagen..." required></textarea>
@@ -33,7 +49,8 @@
 
         <div class="meta-row">
           <span>Model: <strong id="model-name">{{ default_model }}</strong></span>
-          <span>Route: <code>/api/chat/crew</code></span>
+          <span>Mode: <code id="current-mode">Quick answer</code></span>
+          <span>Route: <code id="current-route">/api/chat/rag</code></span>
         </div>
       </section>
     </main>

@@ -4,6 +4,8 @@ const messagesEl = document.getElementById('messages');
 const template = document.getElementById('message-template');
 const sendButton = document.getElementById('send-button');
 const modelNameEl = document.getElementById('model-name');
+const currentModeEl = document.getElementById('current-mode');
+const currentRouteEl = document.getElementById('current-route');
 
 function escapeHTML(text) {
   const div = document.createElement('div');
@@ -18,7 +20,7 @@ function renderMarkdown(text) {
   html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`);
   
   // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<code style="background:#f1f5f9; padding:2px 4px; border-radius:4px">$1</code>');
 
   // Headings
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
@@ -30,7 +32,7 @@ function renderMarkdown(text) {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
   // Blockquotes
-  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+  html = html.replace(/^> (.*$)/gm, '<blockquote style="border-left: 4px solid #f59e0b; background: #fffbeb; padding-left: 10px; font-style: italic;">$1</blockquote>');
 
   // Lists (Unordered)
   html = html.replace(/^\- (.*$)/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '');
@@ -47,7 +49,7 @@ function renderMarkdown(text) {
   return html;
 }
 
-function addMessage(role, content, citations = [], isError = false) {
+function addMessage(role, content, citations = [], isError = false, mode = '') {
   const fragment = template.content.cloneNode(true);
   const card = fragment.querySelector('.message-card');
   const roleEl = fragment.querySelector('.message-role');
@@ -55,7 +57,7 @@ function addMessage(role, content, citations = [], isError = false) {
   const citationsEl = fragment.querySelector('.message-citations');
   const actionsEl = fragment.querySelector('.message-actions');
 
-  roleEl.textContent = role;
+  roleEl.textContent = role === 'User' ? 'User' : `Assistant ${mode ? `(${mode === 'rag' ? 'Quick Answer' : 'Travel Planner'})` : ''}`;
 
   if (role.toLowerCase() === 'user') {
     card.classList.add('user');
@@ -100,7 +102,7 @@ function addMessage(role, content, citations = [], isError = false) {
     const pdfBtn = document.createElement('button');
     pdfBtn.className = 'btn-pdf';
     pdfBtn.textContent = 'Save as PDF';
-    pdfBtn.onclick = () => exportToPDF(content, citations);
+    pdfBtn.onclick = () => exportToPDF(content, citations, mode);
     actionsEl.appendChild(pdfBtn);
   }
 
@@ -108,8 +110,9 @@ function addMessage(role, content, citations = [], isError = false) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-function exportToPDF(answer, citations) {
+function exportToPDF(answer, citations, mode) {
   const userQuestion = messagesEl.lastElementChild?.previousElementSibling?.querySelector('.message-content')?.textContent || 'Copenhagen Inquiry';
+  const modeLabel = mode === 'rag' ? 'Quick Answer' : (mode === 'crew' ? 'Travel Planner' : 'Assistant');
   
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
@@ -127,6 +130,10 @@ function exportToPDF(answer, citations) {
       </head>
       <body>
         <h1>Copenhagen Travel Assistant</h1>
+        <div class="section">
+          <div class="label">Mode</div>
+          <div class="content">${modeLabel}</div>
+        </div>
         <div class="section">
           <div class="label">Question</div>
           <div class="content">${userQuestion}</div>
@@ -150,8 +157,9 @@ function exportToPDF(answer, citations) {
   printWindow.print();
 }
 
-async function sendQuestion(question) {
-  const response = await fetch('/api/chat/crew', {
+async function sendQuestion(question, mode) {
+  const endpoint = mode === 'crew' ? '/api/chat/crew' : '/api/chat/rag';
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -180,15 +188,23 @@ async function sendQuestion(question) {
 async function handleQuestionSubmit(question) {
   if (!question) return;
 
+  const selectedMode = document.querySelector('input[name="chat-mode"]:checked').value;
+  const modeLabel = selectedMode === 'rag' ? 'Quick answer' : 'Travel planner';
+  const routeLabel = selectedMode === 'rag' ? '/api/chat/rag' : '/api/chat/crew';
+
+  currentModeEl.textContent = modeLabel;
+  currentRouteEl.textContent = routeLabel;
+
   addMessage('User', question);
   questionInput.value = '';
   sendButton.disabled = true;
   sendButton.textContent = 'Consulting guide...';
 
   try {
-    const data = await sendQuestion(question);
+    const data = await sendQuestion(question, selectedMode);
     modelNameEl.textContent = data.model || modelNameEl.textContent;
-    addMessage('Assistant', data.message?.content || data.answer || 'No answer returned.', data.citations || []);
+    const mode = data.mode || selectedMode;
+    addMessage('Assistant', data.message?.content || data.answer || 'No answer returned.', data.citations || [], false, mode);
   } catch (error) {
     addMessage('Assistant', error.message || 'Something went wrong.', [], true);
   } finally {
