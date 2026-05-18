@@ -5,20 +5,64 @@ const template = document.getElementById('message-template');
 const sendButton = document.getElementById('send-button');
 const modelNameEl = document.getElementById('model-name');
 
+function escapeHTML(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function renderMarkdown(text) {
+  let html = escapeHTML(text);
+
+  // Fenced code blocks
+  html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`);
+  
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Headings
+  html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+  html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+  html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+
+  // Bold and Italic
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  // Blockquotes
+  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+  // Lists (Unordered)
+  html = html.replace(/^\- (.*$)/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '');
+  
+  // Lists (Ordered)
+  html = html.replace(/^(\d+\.) (.*$)/gm, '<ol><li>$2</li></ol>').replace(/<\/ol>\s*<ol>/g, '');
+
+  // Links
+  html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  // Paragraphs (split by double newline)
+  html = html.split('\n\n').map(p => p.trim().startsWith('<') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+  return html;
+}
+
 function addMessage(role, content, citations = [], isError = false) {
   const fragment = template.content.cloneNode(true);
   const card = fragment.querySelector('.message-card');
   const roleEl = fragment.querySelector('.message-role');
   const contentEl = fragment.querySelector('.message-content');
   const citationsEl = fragment.querySelector('.message-citations');
+  const actionsEl = fragment.querySelector('.message-actions');
 
   roleEl.textContent = role;
-  contentEl.textContent = content;
 
   if (role.toLowerCase() === 'user') {
     card.classList.add('user');
+    contentEl.textContent = content;
   } else {
     card.classList.add('assistant');
+    contentEl.innerHTML = isError ? content : renderMarkdown(content);
   }
 
   if (isError) {
@@ -49,12 +93,61 @@ function addMessage(role, content, citations = [], isError = false) {
       item.appendChild(excerpt);
       list.appendChild(item);
     }
-
     citationsEl.appendChild(list);
+  }
+
+  if (!isError && role.toLowerCase() === 'assistant') {
+    const pdfBtn = document.createElement('button');
+    pdfBtn.className = 'btn-pdf';
+    pdfBtn.textContent = 'Save as PDF';
+    pdfBtn.onclick = () => exportToPDF(content, citations);
+    actionsEl.appendChild(pdfBtn);
   }
 
   messagesEl.appendChild(fragment);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function exportToPDF(answer, citations) {
+  const userQuestion = messagesEl.lastElementChild?.previousElementSibling?.querySelector('.message-content')?.textContent || 'Copenhagen Inquiry';
+  
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Copenhagen Travel Assistant Export</title>
+        <style>
+          body { font-family: sans-serif; padding: 40px; line-height: 1.6; color: #0f172a; }
+          h1 { color: #0ea5e9; border-bottom: 2px solid #0ea5e9; padding-bottom: 10px; }
+          .section { margin-bottom: 20px; }
+          .label { font-weight: bold; color: #64748b; text-transform: uppercase; font-size: 0.8rem; }
+          .content { margin-top: 5px; }
+          .citation { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; margin-bottom: 10px; border-radius: 8px; font-size: 0.9rem; }
+        </style>
+      </head>
+      <body>
+        <h1>Copenhagen Travel Assistant</h1>
+        <div class="section">
+          <div class="label">Question</div>
+          <div class="content">${userQuestion}</div>
+        </div>
+        <div class="section">
+          <div class="label">Assistant Answer</div>
+          <div class="content">${renderMarkdown(answer)}</div>
+        </div>
+        ${citations.length > 0 ? `
+          <div class="section">
+            <div class="label">Sources from the tourism guide</div>
+            <div class="content">
+              ${citations.map(c => `<div class="citation"><strong>[${c.index}] ${c.source}</strong><br>${c.excerpt}</div>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
 }
 
 async function sendQuestion(question) {
@@ -77,9 +170,7 @@ async function sendQuestion(question) {
     try {
       const errorData = await response.json();
       message = errorData.error || message;
-    } catch (_) {
-      // Keep generic message when no JSON error body is available.
-    }
+    } catch (_) {}
     throw new Error(message);
   }
 
@@ -97,7 +188,7 @@ async function handleQuestionSubmit(question) {
   try {
     const data = await sendQuestion(question);
     modelNameEl.textContent = data.model || modelNameEl.textContent;
-    addMessage('Assistant', data.message?.content || 'No answer returned.', data.citations || []);
+    addMessage('Assistant', data.message?.content || data.answer || 'No answer returned.', data.citations || []);
   } catch (error) {
     addMessage('Assistant', error.message || 'Something went wrong.', [], true);
   } finally {

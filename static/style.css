@@ -103,6 +103,7 @@ body {
   padding: 1rem 1.25rem;
   background: var(--assistant-bg);
   transition: transform 0.1s ease;
+  position: relative;
 }
 
 .message-card.user {
@@ -125,9 +126,53 @@ body {
 }
 
 .message-content {
-  white-space: pre-wrap;
   line-height: 1.6;
   color: var(--text-navy);
+}
+
+/* Markdown Styles */
+.message-content h1, .message-content h2, .message-content h3 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-navy);
+}
+.message-content p {
+  margin: 0 0 1rem 0;
+}
+.message-content ul, .message-content ol {
+  margin: 0 0 1rem 1.5rem;
+  padding: 0;
+}
+.message-content blockquote {
+  margin: 0 0 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid var(--accent-nyhavn-orange);
+  background: #fffbeb;
+  font-style: italic;
+}
+.message-content code {
+  background: #f1f5f9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+.message-content pre {
+  background: #1e293b;
+  color: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.message-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.message-content a {
+  color: var(--accent-sea-blue);
+  text-decoration: underline;
 }
 
 .message-citations {
@@ -171,6 +216,30 @@ body {
   font-size: 0.85rem;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+.message-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.btn-pdf {
+  background: white;
+  border: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-pdf:hover {
+  border-color: var(--accent-sea-blue);
+  color: var(--accent-sea-blue);
+  background: #f0f9ff;
 }
 
 .chat-form {
@@ -256,5 +325,25 @@ button#send-button:disabled {
 
   button#send-button {
     width: 100%;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 2rem;
+    color: black;
+  }
+  .no-print {
+    display: none !important;
   }
 }

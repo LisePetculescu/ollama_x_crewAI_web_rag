@@ -46,6 +46,7 @@ uv venv
 ```
 
 #### Install requirements
+***Windows powershell***
 ```bash
 uv pip install -r requirements.txt
 ```
@@ -57,6 +58,8 @@ Before starting the app, build the RAG knowledge base from the docs:
 * **OBS. make sure Ollama is running**
 * If you've run the project earlier, and you've since changed the files in __docs/__ you might want to delete the **chroma_db/** dir, before running ingest.py
 
+
+***Windows powershell***
 ```bash
 python ingest.py
 ```
@@ -75,6 +78,7 @@ Stored 57 chunks in Chroma
 
 ### 3. Start the Flask Web Server
 
+***Windows powershell***
 ```bash
 python app.py
 ```
