@@ -77,22 +77,34 @@ def api_chat_crew() -> Any:
         return jsonify({"error": "Missing question or user message."}), 400
 
     answer, citations = run_crew(question)
-    result = {"answer": answer, "citations": citations, "grounded": True, "no_answer": False}
-
+    
     return jsonify(
         {
             "model": model,
             "message": {
                 "role": "assistant",
-                "content": result["answer"],
+                "content": answer,
             },
             "done": True,
-            "citations": result["citations"],
-            "grounded": result["grounded"],
-            "no_answer": result["no_answer"],
+            "citations": citations,
+            "grounded": True,
+            "no_answer": False,
             "mode": "crew"
         }
     )
+
+
+@app.post("/api/chat")
+def api_chat() -> Any:
+    """Backward compatible route with automatic routing logic."""
+    payload = request.get_json(silent=True) or {}
+    question = get_question_from_payload(payload)
+    
+    # Simple heuristic: if it looks like a plan/itinerary, use crew
+    q_lower = (question or "").lower()
+    if any(word in q_lower for word in ["plan", "itinerary", "schedule", "budget", "trip"]):
+        return api_chat_crew()
+    return api_chat_rag()
 
 
 if __name__ == "__main__":
