@@ -61,28 +61,6 @@ def get_question_from_payload(payload: Dict[str, Any]) -> Optional[str]:
     return question or None
 
 
-@app.route("/api/chat", methods=["POST"])
-def chat():
-    payload = request.get_json(silent=True) or {}
-    user_message = get_question_from_payload(payload)
-
-    if not user_message:
-        return jsonify({"answer": "Please write a question.", "citations": []})
-
-    if should_use_crew(user_message):
-        answer, citations = run_crew(user_message)
-        response = {
-            "answer": answer,
-            "mode": "crew",
-            "citations": citations,
-        }
-    else:
-        response = answer_question(user_message, top_k=TOP_K)
-        response["mode"] = "rag"
-
-    return jsonify(response)
-
-
 @app.post("/api/chat/rag")
 def api_chat_rag() -> Any:
     payload = request.get_json(silent=True) or {}

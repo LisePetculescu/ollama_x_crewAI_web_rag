@@ -33,6 +33,7 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
 #   qwen3:4b
 #   llama3.1:8b
 #   gemma4:31b-cloud
+#   llama3-groq-tool-use:8b
 CHAT_MODEL = os.getenv("CHAT_MODEL", "qwen3:4b")
 
 # Embedding model used when indexing and searching documents.
