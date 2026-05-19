@@ -64,7 +64,7 @@ DOCS_DIR = Path(os.getenv("DOCS_DIR", "docs"))
 # Number of chunks retrieved from Chroma for each user question.
 TOP_K = int(os.getenv("TOP_K", "4"))
 
-
+ 
 # ---------------------------------------------------------------------
 # Generation configuration
 # ---------------------------------------------------------------------
