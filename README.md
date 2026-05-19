@@ -233,7 +233,7 @@ JavaScript renders the response in the UI (static/app.js)
 | File | Purpose |
 |------|---------|
 | **templates/index.html*** | Web UI markup for the chat interface and model selector. |
-| **static/app.js*** | Frontend logic. Sends requests to `/api/chat` (smart router) and displays responses, citations, mode (`rag` or `crew`), and export actions. |
+| **static/app.js*** | Frontend logic. Sends requests to `/api/chat/rag` or `/api/chat/crew` based on user selection and displays responses, citations, mode, and export actions. |
 | **static/style.css*** | Styling for the chat interface. |
 
 `* Based upon Steffen Segovia Helbo's week 9 lecture in LLM for Developers (Spring 2026)`

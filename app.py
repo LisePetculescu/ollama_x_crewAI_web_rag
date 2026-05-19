@@ -11,27 +11,6 @@ PORT = int(os.getenv("PORT", "5000"))
 
 app = Flask(__name__)
 
-def should_use_crew(message: str) -> bool:
-    msg = message.lower()
-
-    planning_keywords = [
-        "plan",
-        "itinerary",
-        "schedule",
-        "trip",
-        "days",
-        "weekend",
-        "holiday",
-        "vacation",
-        "route",
-        "budget",
-        "family trip",
-        "couple",
-    ]
-
-    return any(keyword in msg for keyword in planning_keywords)
-
-
 @app.get("/")
 def index():
     return render_template("index.html", default_model=CHAT_MODEL)

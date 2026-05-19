@@ -135,11 +135,6 @@ def chat_with_context(
         for item in context_blocks
     )
 
-    # system = (
-    #     "You answer only from the provided context. "
-    #     "If the answer is not contained in the context, say exactly: I don't know. "
-    #     "Keep the answer concise and cite the chunk numbers you used like [1] or [2]."
-    # )
     system = (
         # TRAITS — who the model is
         "You are Magnus, a friendly and passionate Copenhagen local who has lived in the city your whole life. "
