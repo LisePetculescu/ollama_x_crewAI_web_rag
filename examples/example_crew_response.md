@@ -1,3 +1,7 @@
+# This is an example of an answer
+
+---
+
 Hey there! 👋 I’ve lived in Copenhagen since I was a kid, and I know exactly how to make your first day *feel* like magic without the stress. Here’s a real, no-fluff 1-day plan that’s tested by locals (and works for travelers who want to actually *live* in the city’s rhythm).  
 
 ---

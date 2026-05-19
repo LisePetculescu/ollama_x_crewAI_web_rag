@@ -291,3 +291,12 @@ python app.py
 
 ---
 
+**Credits:**
+
+This project is partly based on Steffen Segovia Helbo's week 8 & 9 lectures on *Ollama RAG - Custom Ollama RAG Path* and *Website chat Local RAG* in LLM for Developers (Spring 2026)
+
+The project's authors:
+- Jonas Grønquist
+- Katrine Michala Hansen
+- Lise Freja Jensen Petculescu
+
