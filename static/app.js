@@ -16,6 +16,31 @@ function escapeHTML(text) {
 function renderMarkdown(text) {
   let html = escapeHTML(text);
 
+  const renderTableBlock = (block) => {
+    const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
+    if (lines.length < 2) return null;
+
+    const headerLine = lines[0];
+    const dividerLine = lines[1];
+
+    const hasPipes = headerLine.includes('|') && dividerLine.includes('|');
+    const isDivider = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(dividerLine);
+    if (!hasPipes || !isDivider) return null;
+
+    const parseRow = (row) => row
+      .replace(/^\|\s*/, '')
+      .replace(/\s*\|$/, '')
+      .split('|')
+      .map(cell => cell.trim());
+
+    const headers = parseRow(headerLine);
+    const rows = lines.slice(2).map(parseRow).filter(row => row.length);
+
+    const thead = `<thead><tr>${headers.map(cell => `<th>${cell}</th>`).join('')}</tr></thead>`;
+    const tbody = `<tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    return `<table>${thead}${tbody}</table>`;
+  };
+
   // Fenced code blocks
   html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`);
   
@@ -43,8 +68,20 @@ function renderMarkdown(text) {
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-  // Paragraphs (split by double newline)
-  html = html.split('\n\n').map(p => p.trim().startsWith('<') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+  // Paragraphs (split by double newline), with markdown table support
+  html = html
+    .split('\n\n')
+    .map((block) => {
+      const trimmed = block.trim();
+      if (!trimmed) return '';
+      if (trimmed.startsWith('<')) return trimmed;
+
+      const table = renderTableBlock(trimmed);
+      if (table) return table;
+
+      return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
+    })
+    .join('');
 
   return html;
 }

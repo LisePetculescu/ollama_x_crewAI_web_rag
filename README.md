@@ -152,6 +152,7 @@ This is a **Retrieval-Augmented Generation (RAG) chat** that uses:
 ---
 
 ## Request Flow: From Browser to Answer
+You can read more on the chosen architecture in the **[Technical Documentation](technical_documentation.md)**
 
 ### Route 1: CrewAI Multi-Agent Flow (`/api/chat/crew`)
 ```
@@ -197,6 +198,59 @@ Answer + citations returned as JSON (app.py:110)
     ↓
 JavaScript renders the response in the UI (static/app.js)
 ```
+
+---
+
+## How The 4 T's Are Used In CrewAI
+
+This project uses the **4 T's** framework in the **agent definitions** in [crew.py](crew.py), while keeping execution instructions in **task definitions**.
+
+### 1) Trait
+- Defined in each agent's `backstory`.
+- Describes identity and core strengths (for example: tourist expert, planner, reviewer).
+
+### 2) Task
+- Defined at two levels:
+- Agent-level specialization is described in each agent `backstory` (what that agent is best at).
+- Concrete step-by-step work is defined in each `Task(description=...)` block (`research_task`, `planning_task`, `review_task`).
+
+### 3) Tone
+- Defined in each agent's `backstory`.
+- Controls response style (for example: precise, warm, conversational).
+
+### 4) Target
+- Defined in each agent's `backstory`.
+- States who the response is for (tourists visiting Copenhagen).
+
+### Mapping In This Codebase
+
+| Agent | Trait | Task Specialization | Tone | Target |
+|------|------|------|------|------|
+| Tourist Experience Researcher | Knowledgeable local expert | Research facts from local knowledge base | Friendly + precise | Tourists needing reliable info |
+| Copenhagen Trip Planner | Practical travel planner | Turn research into itinerary or structured guidance | Organized + helpful | Visitors planning activities |
+| Copenhagen Local Expert (Reviewer) | Hospitality-focused local voice | Polish final answer for chat usability | Warm + conversational | International tourists and curious visitors |
+
+### Quick Answer Mode: How system Uses The 4 T's
+
+When the user selects Quick Answer mode, the request goes through [app.py](app.py#L40) to [rag_helpers.py](rag_helpers.py#L125). In [rag_helpers.py](rag_helpers.py#L134), the system prompt in chat_with_context is also structured with the same 4 T model:
+
+| 4 T | How it is implemented in system |
+|------|------|
+| Trait | Defines identity as Magnus, a friendly Copenhagen local with deep city knowledge. |
+| Task | Instructs the model to answer only from retrieved context, admit unknowns, and cite chunks like [1], [2]. |
+| Tone | Specifies warm, enthusiastic, conversational language with practical guidance. |
+| Target | Defines audience as tourists unfamiliar with Copenhagen who need actionable suggestions. |
+
+This means both modes use the same design principle:
+- Crew mode applies 4 T's through specialized agents in [crew.py](crew.py).
+- Quick answer mode applies 4 T's through one system prompt in [rag_helpers.py](rag_helpers.py#L134).
+
+### Design Rule Used
+
+- **Agent** = persona and communication profile (Trait, specialization Task, Tone, Target).
+- **Task object** = concrete assignment and expected output for that step in the pipeline.
+
+This separation helps keep personalities out of task prompts and keeps work instructions out of role definitions.
 
 ---
 
