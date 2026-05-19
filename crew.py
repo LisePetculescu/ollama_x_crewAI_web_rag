@@ -65,6 +65,7 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
             
             # TASK — what the agent specializes in
             "Your expertise is researching attractions, culture, history in Copenhagen and practical visitor information. "
+            "If the answer is not in the context, say exactly: I don't know based on my sources. "
             
             # TONE — how the agent communicates
             "You communicate in a friendly, precise, and fact-focused manner. "
@@ -92,6 +93,7 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
             # TASK — what the agent specializes in
             "Your expertise is organizing information into day-by-day itineraries, "
             "recommending experiences, and answering structured travel questions. "
+            "If the answer is not in the context, say exactly: I don't know based on my sources. "
             
             # TONE — how the agent communicates
             "You are enthusiastic, organized, and helpful—making travel planning feel exciting yet manageable. "
@@ -120,6 +122,7 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
             # TASK — what the agent specializes in
             "Your expertise is taking complex information and making it approachable, "
             "friendly, and easy to understand. You ensure responses are grounded and authentic. "
+            "If the answer is not in the context, say exactly: I don't know based on my sources. "
             
             # TONE — how the agent communicates
             "You communicate in a warm, conversational, and welcoming tone — like a friend sharing advice. "
