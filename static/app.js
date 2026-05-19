@@ -14,38 +14,14 @@ function escapeHTML(text) {
 }
 
 function renderMarkdown(text) {
+  if (!text) return '';
   let html = escapeHTML(text);
-
-  const renderTableBlock = (block) => {
-    const lines = block.split('\n').map(line => line.trim()).filter(Boolean);
-    if (lines.length < 2) return null;
-
-    const headerLine = lines[0];
-    const dividerLine = lines[1];
-
-    const hasPipes = headerLine.includes('|') && dividerLine.includes('|');
-    const isDivider = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(dividerLine);
-    if (!hasPipes || !isDivider) return null;
-
-    const parseRow = (row) => row
-      .replace(/^\|\s*/, '')
-      .replace(/\s*\|$/, '')
-      .split('|')
-      .map(cell => cell.trim());
-
-    const headers = parseRow(headerLine);
-    const rows = lines.slice(2).map(parseRow).filter(row => row.length);
-
-    const thead = `<thead><tr>${headers.map(cell => `<th>${cell}</th>`).join('')}</tr></thead>`;
-    const tbody = `<tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>`;
-    return `<table>${thead}${tbody}</table>`;
-  };
 
   // Fenced code blocks
   html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => `<pre><code class="language-${lang}">${code}</code></pre>`);
   
   // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code style="background:#f1f5f9; padding:2px 4px; border-radius:4px">$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
   // Headings
   html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
@@ -57,7 +33,7 @@ function renderMarkdown(text) {
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
   // Blockquotes
-  html = html.replace(/^> (.*$)/gm, '<blockquote style="border-left: 4px solid #f59e0b; background: #fffbeb; padding-left: 10px; font-style: italic;">$1</blockquote>');
+  html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
 
   // Lists (Unordered)
   html = html.replace(/^\- (.*$)/gm, '<ul><li>$1</li></ul>').replace(/<\/ul>\s*<ul>/g, '');
@@ -68,20 +44,8 @@ function renderMarkdown(text) {
   // Links
   html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-  // Paragraphs (split by double newline), with markdown table support
-  html = html
-    .split('\n\n')
-    .map((block) => {
-      const trimmed = block.trim();
-      if (!trimmed) return '';
-      if (trimmed.startsWith('<')) return trimmed;
-
-      const table = renderTableBlock(trimmed);
-      if (table) return table;
-
-      return `<p>${trimmed.replace(/\n/g, '<br>')}</p>`;
-    })
-    .join('');
+  // Paragraphs
+  html = html.split('\n\n').map(p => p.trim().startsWith('<') ? p : `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 
   return html;
 }
@@ -94,7 +58,8 @@ function addMessage(role, content, citations = [], isError = false, mode = '') {
   const citationsEl = fragment.querySelector('.message-citations');
   const actionsEl = fragment.querySelector('.message-actions');
 
-  roleEl.textContent = role === 'User' ? 'User' : `Assistant ${mode ? `(${mode === 'rag' ? 'Quick Answer' : 'Travel Planner'})` : ''}`;
+  const modeLabel = mode === 'rag' ? 'Quick Answer' : (mode === 'crew' ? 'Travel Planner' : '');
+  roleEl.textContent = role === 'User' ? 'User' : `Assistant ${modeLabel ? `(${modeLabel})` : ''}`;
 
   if (role.toLowerCase() === 'user') {
     card.classList.add('user');
@@ -104,9 +69,7 @@ function addMessage(role, content, citations = [], isError = false, mode = '') {
     contentEl.innerHTML = isError ? content : renderMarkdown(content);
   }
 
-  if (isError) {
-    card.classList.add('error');
-  }
+  if (isError) card.classList.add('error');
 
   if (Array.isArray(citations) && citations.length > 0) {
     const title = document.createElement('h3');
@@ -117,17 +80,13 @@ function addMessage(role, content, citations = [], isError = false, mode = '') {
     for (const citation of citations) {
       const item = document.createElement('li');
       item.className = 'citation-item';
-
       const meta = document.createElement('div');
       const excerpt = document.createElement('p');
-
       const chunkLabel = citation.chunk_index ? `chunk ${citation.chunk_index}` : 'chunk ?';
       meta.className = 'citation-meta';
       meta.textContent = `[${citation.index}] ${citation.source} · ${chunkLabel}`;
-
       excerpt.className = 'citation-excerpt';
       excerpt.textContent = citation.excerpt;
-
       item.appendChild(meta);
       item.appendChild(excerpt);
       list.appendChild(item);
@@ -198,27 +157,18 @@ async function sendQuestion(question, mode) {
   const endpoint = mode === 'crew' ? '/api/chat/crew' : '/api/chat/rag';
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: modelNameEl.textContent.trim(),
-      stream: false,
-      messages: [
-        { role: 'user', content: question }
-      ]
+      messages: [{ role: 'user', content: question }]
     })
   });
 
   if (!response.ok) {
     let message = 'Request failed.';
-    try {
-      const errorData = await response.json();
-      message = errorData.error || message;
-    } catch (_) {}
+    try { const errorData = await response.json(); message = errorData.error || message; } catch (_) {}
     throw new Error(message);
   }
-
   return response.json();
 }
 
@@ -253,13 +203,12 @@ async function handleQuestionSubmit(question) {
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
-  const question = questionInput.value.trim();
-  handleQuestionSubmit(question);
+  handleQuestionSubmit(questionInput.value);
 });
 
 document.querySelectorAll('.suggestion-card').forEach(card => {
   card.addEventListener('click', () => {
-    const query = card.getAttribute('data-query');
-    handleQuestionSubmit(query);
+    questionInput.value = card.dataset.query;
+    handleQuestionSubmit(card.dataset.query);
   });
 });
