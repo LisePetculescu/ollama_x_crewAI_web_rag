@@ -15,8 +15,6 @@ from config import (
     COLLECTION_NAME,
     EMBEDDING_MODEL,
     OLLAMA_HOST,
-    TEMPERATURE,
-    TOP_K,
 )
 
 
