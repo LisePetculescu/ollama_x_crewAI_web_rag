@@ -22,6 +22,41 @@ This project is a local-first Copenhagen tourism chatbot with two answer modes:
 - `/api/chat/rag` -> direct RAG path (fast, single-pass)
 - `/api/chat/crew` -> CrewAI path (research -> planning -> review)
 
+### Mermaid Overview Diagram
+
+```mermaid
+flowchart TD
+  A[User / Tourist] --> B[Web UI in browser]
+  B --> C[Flask Backend app.py]
+
+  C --> D{Answer flow}
+
+  D -->|Quick Answer mode| E["rag_helpers.py<br/>answer_question()"]
+  E --> F["Retrieve top-k chunks from ChromaDB"]
+  F --> G["Local Ollama LLM"]
+  G --> H["Answer + citations returned to user"]
+
+  D -->|Travel Planner mode| I["crew.py<br/>run_crew()"]
+  I --> J["Tourist Experience Researcher"]
+  J --> K["Retrieve chunks via copenhagen_rag_search"]
+  K --> L["Copenhagen Trip Planner"]
+  L --> M["Copenhagen Local Expert Reviewer"]
+  M --> H
+
+  N["Copenhagen tourism documents in docs/"] --> O["ingest.py"]
+  O --> P["Chunking + embeddings"]
+  P --> Q["ChromaDB persistent vector store"]
+  Q --> F
+  Q --> K
+
+  R["Optional CLI use"] --> S["ask.py"]
+  S --> E
+
+  H --> C
+  C --> B
+  B --> A
+```
+
 ## 2. Which Local LLM Path Is Used
 
 The system uses Ollama locally for both embeddings and generation.
