@@ -680,3 +680,7 @@ Keep this distinction clear:
 **question -> retrieval -> chat model with context -> answer**
 
 That is the main idea behind the whole lesson.
+
+---
+
+Authored by: Steffen Segovia Helbo teacher at Erhversakademi København
