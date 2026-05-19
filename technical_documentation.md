@@ -57,6 +57,16 @@ flowchart TD
   B --> A
 ```
 
+### How The Diagram Reflects Architectural Choices
+
+The Mermaid diagram visualizes the key architectural decision: **layered separation with dual pipelines**.
+
+- **Presentation → Orchestration split**: Flask backend acts as a router (decision diamond) that branches into two distinct flows based on user choice. This modular design allows independent scaling of quick answers vs. multi-agent reasoning.
+- **Shared knowledge layer**: Both pipelines (Quick Answer and Travel Planner) converge at ChromaDB retrieval, demonstrating code reuse and consistent grounding. No logic duplication.
+- **Ingestion as separate flow**: The data layer is fed independently via `ingest.py`, so knowledge updates don't require system restart. This supports maintainability.
+- **Optional CLI path**: Shows that the same RAG core (`answer_question()`) is reusable beyond the web interface, reinforcing modularity.
+- **Local Ollama bottleneck**: All model calls go through a single local endpoint, making performance optimization and model swapping straightforward (edit `config.py` and reinitialize).
+
 ## 2. Which Local LLM Path Is Used
 
 The system uses Ollama locally for both embeddings and generation.
