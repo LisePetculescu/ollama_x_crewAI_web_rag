@@ -52,16 +52,25 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
     global _crew_citations
     _crew_citations = []  # Reset citations for this crew run
 
-    local_expert = Agent(
-        role="Copenhagen Local Expert",
+    tourist_expert = Agent(
+        role="Tourist Experience Researcher",
         goal=(
-            "Find accurate Copenhagen tourism information using the local "
-            "RAG knowledge base."
+            "Research and provide accurate, well-sourced Copenhagen tourism information "
+            "by querying the local knowledge base."
         ),
         backstory=(
-            "You are Magnus, a friendly Copenhagen local. You know the city well, "
-            "but you are careful with facts. When you need factual information, "
-            "you use the Copenhagen RAG Search tool."
+            # TRAIT — who the agent is
+            "You are Magnus, a knowledgeable Copenhagen local with deep expertise about the city. "
+            "You are meticulous with facts and always verify information from reliable sources. "
+            
+            # TASK — what the agent specializes in
+            "Your expertise is researching attractions, culture, history in Copenhagen and practical visitor information. "
+            
+            # TONE — how the agent communicates
+            "You communicate in a friendly, precise, and fact-focused manner. "
+            
+            # TARGET — who the agent serves
+            "You serve tourists and visitors seeking accurate, detailed information about Copenhagen."
         ),
         tools=[copenhagen_rag_search],
         llm=llm,
@@ -71,11 +80,24 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
 
     trip_planner = Agent(
         role="Copenhagen Trip Planner",
-        goal="Create useful, realistic Copenhagen travel plans for tourists or just give facts if the user do not ask for an itenerary or planned trip",
+        goal=(
+            "Transform research into clear, practical Copenhagen travel itineraries "
+            "or well-structured factual responses."
+        ),
         backstory=(
-            "You are an experienced travel planner who creates practical, "
-            "well-paced itineraries for visitors to Copenhagen or just facts about copehagen, if the user do not ask for an itenerary."
-            "you use the Copenhagen RAG Search tool."
+            # TRAIT — who the agent is
+            "You are an experienced travel planner with a talent for creating realistic, "
+            "memorable travel experiences. You combine practical logistics with local insights. "
+            
+            # TASK — what the agent specializes in
+            "Your expertise is organizing information into day-by-day itineraries, "
+            "recommending experiences, and answering structured travel questions. "
+            
+            # TONE — how the agent communicates
+            "You are enthusiastic, organized, and helpful—making travel planning feel exciting yet manageable. "
+            
+            # TARGET — who the agent serves
+            "You serve tourists planning trips to Copenhagen who want clear guidance and practical suggestions."
         ),
         tools=[copenhagen_rag_search],
         llm=llm,
@@ -84,15 +106,27 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
     )
 
     reviewer = Agent(
-        role="Tourist Experience Reviewer",
-        goal="Polish the final response so it works well as a chat answer.",
+        role="Copenhagen Local Expert",
+        goal=(
+            "Polish and finalize responses to ensure they are warm, clear, and "
+            "perfectly suited for casual chat interactions."
+        ),
         backstory=(
-            "You're Maja, a 40 year old woman, born and raised in vesterbro copenhagen."
-            "You review travel advice to make sure it is clear, friendly, "
-            "realistic, and easy for tourists to follow."
-            "you use the Copenhagen RAG Search tool."
-            "Your target is people from all over the world, who's interested in visiting,"
-            "or learning more about copenhagen."
+            # TRAIT — who the agent is
+            "You are Maja, a 40-year-old natively from Vesterbro, Copenhagen with an education in "
+            "hospitality and communication. You care deeply about visitor experiences "
+            "and the place you've lived in your entire life. "
+            
+            # TASK — what the agent specializes in
+            "Your expertise is taking complex information and making it approachable, "
+            "friendly, and easy to understand. You ensure responses are grounded and authentic. "
+            
+            # TONE — how the agent communicates
+            "You communicate in a warm, conversational, and welcoming tone — like a friend sharing advice. "
+            
+            # TARGET — who the agent serves
+            "You serve international tourists and Copenhagen enthusiasts from all over the world "
+            "who want genuine, accessible guidance."
         ),
         tools=[copenhagen_rag_search],
         llm=llm,
@@ -102,56 +136,55 @@ def run_crew(question: str) -> tuple[str, List[Dict[str, Any]]]:
 
     research_task = Task(
         description=f"""
-        Research this tourist request:
+        Research and gather factual information to answer this tourist request:
 
         {question}
 
-        You MUST use the Copenhagen RAG Search tool at least once.
-
-        Focus on factual Copenhagen information from the local knowledge base.
-        Include useful details about attractions, castles, museums, transport,
-        neighborhoods, food, or practical tourist advice when relevant.
+        You MUST use the Copenhagen RAG Search tool to find accurate information.
+        Focus on attractions, castles, museums, transport, neighborhoods, food, 
+        or practical tourist advice as relevant to the question.
         """,
         expected_output=(
-            "Grounded research notes based on the Copenhagen RAG knowledge base."
+            "Detailed research notes with facts and sources from the Copenhagen knowledge base."
         ),
-        agent=local_expert,
+        agent=tourist_expert,
     )
 
     planning_task = Task(
         description=f"""
-        Create a helpful tourist response for this request:
+        Transform the research into a helpful response for this tourist request:
 
         {question}
 
         Use the research notes from the Copenhagen Local Expert.
-
-        If the user asks for a trip plan, create a clear day-by-day itinerary.
-        If the user asks a general question, give a structured helpful answer.
+        If the question asks for a trip plan, create a clear day-by-day itinerary.
+        If it's a general question, provide a well-organized, structured answer.
+        Base everything on the research findings.
         """,
         expected_output=(
-            "A clear markdown response for a tourist visiting Copenhagen."
+            "A clear, structured response in markdown format suitable for tourists."
         ),
         agent=trip_planner,
     )
 
     review_task = Task(
         description="""
-        Review and polish the answer.
+        Review and finalize the response for a chat interface.
 
-        The final answer must:
-        - sound like a friendly chatbot response
-        - be practical for tourists
-        - avoid mentioning internal agents or tasks
-        - use markdown formatting
-        - keep the answer grounded in the local Copenhagen knowledge base
+        Make sure the answer:
+        - Sounds like a friendly, helpful chatbot response
+        - Is practical and actionable for tourists
+        - Avoids mentioning internal processes or agent names
+        - Uses clear markdown formatting
+        - Stays grounded in the Copenhagen knowledge base
+        - Feels warm and welcoming
         """,
-        expected_output="A polished final chatbot response in markdown.",
+        expected_output="A polished, final chatbot response ready for chat display.",
         agent=reviewer,
     )
 
     crew = Crew(
-        agents=[local_expert, trip_planner, reviewer],
+        agents=[tourist_expert, trip_planner, reviewer],
         tasks=[research_task, planning_task, review_task],
         process=Process.sequential,
         verbose=True,

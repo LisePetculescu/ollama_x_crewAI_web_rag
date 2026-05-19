@@ -166,7 +166,7 @@ Question text is extracted via get_question_from_payload() (app.py:45)
 run_crew(question) is called (app.py:121, crew.py:49)
     ↓
 Three CrewAI agents are created and execute tasks sequentially:
-    ├─ Local Expert Agent → research_task
+    ├─ Tourist Expert Agent → research_task
     │  └─ Calls copenhagen_rag_search tool
     │     └─ Calls answer_question() from rag_helpers.py
     │        ├─ Embeds the question (via Ollama)
@@ -205,7 +205,7 @@ JavaScript renders the response in the UI (static/app.js)
 | File | Purpose |
 |------|---------|
 | **app.py***| Flask server and request router. Exposes `/api/chat/rag` (direct RAG), and `/api/chat/crew` (CrewAI multi-agent flow). Uses `run_crew()` and `answer_question()` to produce JSON responses. |
-| **crew.py** | CrewAI orchestration. Defines the three agents (local expert, trip planner, reviewer), tasks, and the `copenhagen_rag_search` tool used by the Crew flow. |
+| **crew.py** | CrewAI orchestration. Defines the three agents (Tourist expert, trip planner, reviewer), tasks, and the `copenhagen_rag_search` tool used by the Crew flow. |
 | **rag_helpers.py***| RAG utilities: document loader, PDF/text parsing, chunking helper usage, embedding via Ollama, ChromaDB client/retrieval, `chat_with_context()` and `answer_question()` functions. |
 | **config.py** | Environment-backed configuration (model names, Chroma dir, chunk sizes, TOP_K, etc.). Edit to change defaults for local runs. |
 
